@@ -12,8 +12,6 @@ services:
       - OLLAMA_HOST=http://host.docker.internal:11434
     volumes:
       - ./config:/etc/nginx/conf.d:ro
-    depends_on:
-      - cloudflared
     networks:
       - llama-network
 
