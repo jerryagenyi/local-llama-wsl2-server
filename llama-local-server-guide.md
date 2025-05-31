@@ -239,61 +239,61 @@ Update the script to use the correct distribution name (e.g., `Ubuntu`, `Ubuntu-
 
 # Default target
 help:
-	@echo "Llama 3.2 11B Local Server"
-	@echo "=========================="
-	@echo "setup          - Complete system setup"
-	@echo "install-deps   - Install dependencies"
-	@echo "download-model - Download Llama model"
-	@echo "start         - Start all services"
-	@echo "stop          - Stop all services"
-	@echo "restart       - Restart all services"
-	@echo "logs          - Show service logs"
-	@echo "health        - Check system health"
-	@echo "clean         - Clean up containers"
+  @echo "Llama 3.2 11B Local Server"
+  @echo "=========================="
+  @echo "setup          - Complete system setup"
+  @echo "install-deps   - Install dependencies"
+  @echo "download-model - Download Llama model"
+  @echo "start         - Start all services"
+  @echo "stop          - Stop all services"
+  @echo "restart       - Restart all services"
+  @echo "logs          - Show service logs"
+  @echo "health        - Check system health"
+  @echo "clean         - Clean up containers"
 
 # Complete setup
 setup: install-deps download-model
-	@echo "Setup complete! Run 'make start' to begin."
+  @echo "Setup complete! Run 'make start' to begin."
 
 # Install system dependencies
 install-deps:
-	@echo "Installing system dependencies..."
-	sudo ./scripts/install-deps.sh
-	@echo "Dependencies installed!"
+  @echo "Installing system dependencies..."
+  sudo ./scripts/install-deps.sh
+  @echo "Dependencies installed!"
 
 # Download Llama model
 download-model:
-	@echo "Downloading Llama 3.2 11B model..."
-	docker-compose run --rm ollama ollama pull $(MODEL_NAME)
-	@echo "Model downloaded!"
+  @echo "Downloading Llama 3.2 11B model..."
+  docker-compose run --rm ollama ollama pull $(MODEL_NAME)
+  @echo "Model downloaded!"
 
 # Start services
 start:
-	@echo "Starting Llama server..."
-	docker-compose up -d
-	@echo "Services starting... Check with 'make logs'"
+  @echo "Starting Llama server..."
+  docker-compose up -d
+  @echo "Services starting... Check with 'make logs'"
 
 # Stop services
 stop:
-	@echo "Stopping services..."
-	docker-compose down
-	@echo "Services stopped!"
+  @echo "Stopping services..."
+  docker-compose down
+  @echo "Services stopped!"
 
 # Restart services
 restart: stop start
 
 # Show logs
 logs:
-	docker-compose logs -f
+  docker-compose logs -f
 
 # Health check
 health:
-	@./scripts/health-check.sh
+  @./scripts/health-check.sh
 
 # Clean up
 clean:
-	docker-compose down -v
-	docker system prune -f
+  docker-compose down -v
+  docker system prune -f
 ```
 
 [Return To Top](#complete-wsl2--llama-32-11b-local-server-setup-guide)
@@ -1094,7 +1094,73 @@ bash install-deps.sh
 
 - **Summary:**
   - Your approach of creating tunnels as needed, using dedicated subdomains, and following Copilot's .env advice is robust and secure.
+
   - Don't worry about apt informational messages or about having multiple tunnels—this is a good practice for service isolation.
+
+---
+
+## Additional Troubleshooting Lessons (from Gemini & Copilot)
+
+### 1. Docker Compose Variable Expansion with Password Hashes
+
+If you use a password hash (such as for `BASIC_AUTH_PASS`) that contains `$` symbols, Docker Compose will try to expand them as environment variables. This causes warnings like:
+
+```
+WARN[0000] The "apr1" variable is not set. Defaulting to a blank string.
+```
+
+**Solution:**
+
+- Enclose the entire value in single quotes in your `.env` file:
+  ```env
+  BASIC_AUTH_PASS='admin:$apr1$UzN7IM2z$Kj04zZAt7LhWu1id0Q4GY0'
+  ```
+- This prevents Docker Compose from interpreting `$` as variable expansion.
+
+### 2. Resolving Docker Container Name Conflicts
+
+If you see errors like:
+
+```
+Error response from daemon: Conflict. The container name "/llama-ollama" is already in use by container ...
+```
+
+**Solution:**
+
+1. Stop the container (if running):
+   ```bash
+   docker stop llama-ollama
+   ```
+2. Remove the container:
+   ```bash
+   docker rm llama-ollama
+   ```
+
+Repeat for any other conflicting containers (e.g., `llama-watchtower`).
+
+### 3. WSL2 GPU Passthrough: /dev/kfd and /dev/dri
+
+For AMD GPU acceleration in WSL2, the device files `/dev/kfd` and `/dev/dri` must exist in your Ubuntu environment. If they are missing, your containers will not be able to use the GPU.
+
+**Check:**
+```bash
+ls -la /dev/kfd /dev/dri
+```
+
+If you see `No such file or directory`, try the following:
+
+- Ensure you have installed the latest AMD drivers on Windows (use the full WHQL package and "factory reset" option).
+- Reboot Windows after driver installation.
+- Make sure Hyper-V, Virtual Machine Platform, and Windows Subsystem for Linux are enabled in Windows Features.
+- Run `wsl --update` and `wsl --shutdown` from PowerShell.
+- Open your Ubuntu WSL2 terminal and check again.
+
+If the device files are still missing, you may need to:
+- Check Device Manager for errors on your GPU.
+- Consider a full WSL2 reset (unregister and reinstall the distro) as a last resort.
+
+**Note:**
+If `/dev/kfd` and `/dev/dri` are not present, GPU passthrough is not working and containers like Ollama will fail to start.
 
 ---
 
