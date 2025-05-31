@@ -60,8 +60,6 @@ Podman offers better security with rootless containers and minimizes attack surf
 Windows 11 Host
 └── WSL2 Ubuntu 22.04
     ├── Docker Engine
-    ├── Ollama Container (Llama 3.2 11B)
-    ├── Cloudflare Tunnel Container
     └── Nginx Reverse Proxy Container
 ```
 
@@ -498,16 +496,18 @@ http {
 
 ## Implementation Phase 4: Cloudflare & Security
 
-### 4.1 Cloudflare Tunnel Setup (RECOMMENDED METHOD)
+### 4.1 Cloudflare Tunnel Setup (RECOMMENDED: Automated Token Method)
 
-**Why Manual Token Method is Better:**
-Based on your experience, auto-creating tunnels via scripts often fails due to authentication complexities, token storage issues, and permission problems. The manual dashboard method is more reliable.
+> **This is the recommended, automated Cloudflare token setup.** It is the most reliable and industry-standard approach for most users. Manual/scripted methods are provided below only for troubleshooting or advanced customization.
 
-#### Step-by-Step Cloudflare Setup:
+#### Why Automated Token Method?
+> The automated token method is the recommended and most reliable path for most users. It avoids authentication complexities, token storage issues, and permission problems that often occur with manual or scripted approaches. This structure mirrors robust open-source/public guides and makes your documentation easier for others to follow and maintain.
+
+#### Step-by-Step Cloudflare Automated Token Setup:
 
 1. **Login to Cloudflare Zero Trust Dashboard**
    - Go to https://dash.teams.cloudflare.com/
-   - Navigate to **Access > Tunnels**
+   - Navigate to **Access > Tunnels** (now under the "Networks" section)
 
 2. **Create New Tunnel**
    - Click **"Create a tunnel"**
@@ -525,15 +525,23 @@ Based on your experience, auto-creating tunnels via scripts often fails due to a
    - URL: `http://nginx:80` (internal Docker network)
    - Click **"Save tunnel"**
 
+> **Why:** The automated token method is the default because it is the most reliable and secure for most users. Manual/scripted methods are included below for troubleshooting edge cases or if you require specific customizations.
+
 #### How Docker Container Works:
-The Cloudflare tunnel container runs `cloudflared` daemon inside Docker, which:
+The Cloudflare tunnel container runs `cloudflared` inside Docker, which:
 - Connects to Cloudflare's edge servers using your token
 - Creates secure outbound-only connections (no firewall changes needed)
 - Routes traffic from `api.yourdomain.com` → Docker network → Nginx → Ollama
 - Automatically handles SSL/TLS termination at Cloudflare edge
 
-### 4.2 Alternative Script (If You Prefer Automation)
-Create `scripts/configure-tunnel.sh` (only if manual method doesn't work):
+---
+
+### 4.2 Manual/Scripted Method (Fallback)
+
+> **Use this only if the automated method fails or you need advanced customization.**
+
+If you prefer automation or need to troubleshoot, you can use the provided script. However, this method is less reliable due to authentication and permission complexities.
+
 Create `scripts/configure-tunnel.sh`:
 ```bash
 #!/bin/bash
@@ -561,7 +569,6 @@ fi
 echo "Tunnel ID: $TUNNEL_ID"
 
 # Create DNS record
-echo "Creating DNS record..."
 cloudflared tunnel route dns $TUNNEL_NAME api.yourdomain.com
 
 # Get tunnel token
@@ -571,6 +578,8 @@ echo "CLOUDFLARE_TUNNEL_TOKEN=$TOKEN"
 
 echo "=== Cloudflare Tunnel Configuration Complete ==="
 ```
+
+> **Why:** This manual/scripted method is provided for cases where automation fails or specific customization is required. It is not the default because it is more error-prone and requires more manual intervention.
 
 ### 4.2 Windows Auto-Start Setup
 Create `scripts/setup-autostart.sh`:

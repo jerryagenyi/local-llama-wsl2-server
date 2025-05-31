@@ -1,0 +1,87 @@
+# Docker Compose file for Llama Local Server
+# See guide for full configuration
+
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:rocm
+    container_name: llama-ollama
+    restart: unless-stopped
+    ports:
+      - "${INTERNAL_PORT}:11434"
+    volumes:
+      - "${MODELS_PATH}:/root/.ollama"
+      - ollama_data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_MAX_LOADED_MODELS=${OLLAMA_MAX_LOADED_MODELS}
+      - OLLAMA_NUM_PARALLEL=${OLLAMA_NUM_PARALLEL}
+      - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE}
+      - HSA_OVERRIDE_GFX_VERSION=${HSA_OVERRIDE_GFX_VERSION}
+      - ROCM_VERSION=${ROCM_VERSION}
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+    networks:
+      - llama-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: llama-nginx
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT}:80"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - ollama
+    networks:
+      - llama-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: llama-tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - nginx
+    networks:
+      - llama-network
+    healthcheck:
+      test: ["CMD", "cloudflared", "--version"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: llama-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_SCHEDULE=0 0 2 * * *
+    networks:
+      - llama-network
+
+volumes:
+  ollama_data:
+    driver: local
+
+networks:
+  llama-network:
+    driver: bridge
