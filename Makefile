@@ -2,7 +2,7 @@
 
 # Default target
 help:
-	@echo "Llama 3.2 11B Local Server"
+	@echo "Llama 3.2 11B Local Server (Ubuntu 24.04)"
 	@echo "=========================="
 	@echo "setup          - Complete system setup"
 	@echo "install-deps   - Install dependencies"

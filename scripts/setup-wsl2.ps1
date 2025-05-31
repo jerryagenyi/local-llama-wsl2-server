@@ -13,9 +13,10 @@ swap=8GB
 localhostForwarding=true
 nestedVirtualization=true
 
-[interop]
-enabled=true
-appendWindowsPath=false
+# [interop] section is deprecated in modern WSL2 (Ubuntu 24.04+), but shown here for reference:
+# [interop]
+# enabled=true
+# appendWindowsPath=false
 "@
 
 $wslConfig | Out-File -FilePath "$env:USERPROFILE\.wslconfig" -Encoding UTF8
@@ -23,4 +24,6 @@ $wslConfig | Out-File -FilePath "$env:USERPROFILE\.wslconfig" -Encoding UTF8
 # Restart WSL2
 wsl --shutdown
 Start-Sleep 5
-wsl -d Ubuntu-22.04
+# IMPORTANT: Update the distribution name below to match your installed Ubuntu version.
+# Run 'wsl -l -v' in PowerShell to see available distributions.
+wsl -d Ubuntu-24.04
