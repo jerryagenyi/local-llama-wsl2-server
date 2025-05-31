@@ -1,1 +1,1 @@
-# wsl2-llm-server
+# local-llama-wsl2-server
