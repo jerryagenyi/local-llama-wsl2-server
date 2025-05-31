@@ -1,6 +1,4 @@
 # docker-compose.yml for Llama Local Server with GPU via native Windows Ollama
-# This configuration assumes Ollama is installed directly on Windows and using the GPU.
-
 services:
   nginx:
     image: nginx:alpine
@@ -21,8 +19,8 @@ services:
     restart: unless-stopped
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-      # Corrected: Explicitly route to Nginx's internal port 80.
-      - CLOUDFLARED_OPTS=--no-autoupdate tunnel --url http://llama-nginx:80
+    # Remove the CLOUDFLARED_OPTS - use command instead
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
       - nginx
     networks:
@@ -36,40 +34,32 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_SCHEDULE=0 0 2 * * *
+      - WATCHTOWER_SCHEDULE=0 0 2 * * *  # Fixed cron syntax
     networks:
       - llama-network
 
-  # --- NEW N8N SERVICE ---
   n8n:
-    image: n8nio/n8n:latest # Use the official N8N Docker image
-    container_name: desktop-n8n # A clear name for your N8N container
-    restart: unless-stopped # Ensure N8N restarts with your stack
-    # Optional: You can map this port to your host for local testing (e.g., http://localhost:5678)
-    # If you only plan to access via Cloudflare Tunnel, this port mapping is not strictly required.
+    image: n8nio/n8n:latest
+    container_name: desktop-n8n
+    restart: unless-stopped
     ports:
       - "5678:5678"
     environment:
-      # Crucial for N8N to generate correct webhook URLs and know its public URL
-      - N8N_HOST=n8n.jerryagenyi.xyz # Your public hostname for N8N
-      - N8N_PROTOCOL=https # N8N should know it's served over HTTPS via Cloudflare
-      - WEBHOOK_URL=https://n8n.jerryagenyi.xyz/webhook/ # Adjust if you use a specific webhook path
-      - GENERIC_TIMEZONE=Europe/London # Set your local timezone (e.g., Europe/London)
-      # You can add N8N_BASIC_AUTH_USER / N8N_BASIC_AUTH_PASSWORD here if you want N8N's own basic auth
-      # But Cloudflare Access is generally preferred for external access control.
+      - N8N_HOST=n8n.jerryagenyi.xyz
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.jerryagenyi.xyz/webhook/
+      - GENERIC_TIMEZONE=Europe/London
+      - N8N_SECURE_COOKIE=false  # Set to true if using HTTPS
     volumes:
-      - n8n_data:/home/node/.n8n # Persistent storage for N8N workflow data
+      - n8n_data:/home/node/.n8n
     networks:
-      - llama-network # ESSENTIAL: N8N must be on the same network as cloudflared and nginx
-    # N8N doesn't directly depend on Nginx or Cloudflared to start, but it benefits from the network being up.
-    # depends_on: # Not strictly needed if you want it to start even if Cloudflare is down
-    #   - cloudflared
+      - llama-network
 
 # Docker volumes for persistent data
 volumes:
   ollama_data:
     driver: local
-  n8n_data: # Define a new volume for N8N's persistent data
+  n8n_data:
     driver: local
 
 # Define custom network for containers to communicate
