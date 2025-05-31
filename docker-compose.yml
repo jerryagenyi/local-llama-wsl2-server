@@ -13,13 +13,8 @@ services:
     volumes:
       - "${MODELS_PATH}:/root/.ollama"
       - ollama_data:/root/.ollama
-    environment:
-      - OLLAMA_HOST=0.0.0.0:11434
-      - OLLAMA_MAX_LOADED_MODELS=${OLLAMA_MAX_LOADED_MODELS}
-      - OLLAMA_NUM_PARALLEL=${OLLAMA_NUM_PARALLEL}
-      - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE}
-      - HSA_OVERRIDE_GFX_VERSION=${HSA_OVERRIDE_GFX_VERSION}
-      - ROCM_VERSION=${ROCM_VERSION}
+    env_file:
+      - ./config/ollama.env
     devices:
       - /dev/kfd:/dev/kfd
       - /dev/dri:/dev/dri
