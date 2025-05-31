@@ -1,4 +1,4 @@
-models/
-llama-local-server-guide.md
 # Ignore model storage directory and its contents
+models/
 # Ignore the workspace setup guide
+llama-local-server-guide.md
