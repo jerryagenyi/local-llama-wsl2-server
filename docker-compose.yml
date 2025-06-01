@@ -47,7 +47,7 @@ services:
     environment:
       - N8N_HOST=n8n.jerryagenyi.xyz
       - N8N_PROTOCOL=https
-      - WEBHOOK_URL=https://n8n.jerryagenyi.xyz/webhook/
+      - WEBHOOK_URL=https://webhooks.jerryagenyi.xyz
       - GENERIC_TIMEZONE=Europe/London
       - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
       - EXECUTIONS_PROCESS=main  # For Apps like Telegram. This tweak ensures a fast response from your bot, because all requests will run in the main process. Otherwise, in its own mode n8n will have a few seconds delay for each Telegram request.
