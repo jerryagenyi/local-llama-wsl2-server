@@ -80,39 +80,34 @@ This guide documents the journey to set up a robust local Large Language Model (
 ## Nginx Configuration for Ollama API Proxying
 Your Nginx configuration must ensure all `/api/` paths are correctly proxied to the Ollama backend. Below is a recommended structure:
 
-### Main Nginx Config (`./config/nginx.conf`)
+### Nginx Config (`./config/default.conf`)
 ```nginx
-user nginx;
-worker_processes auto;
-
-http {
-    include       mime.types;
-    default_type  application/octet-stream;
-    sendfile        on;
-    keepalive_timeout  65;
-
-    upstream ollama_backend {
-        # This points to the native Windows Ollama server from within the Docker Nginx container
-        server host.docker.internal:11434;
-    }
-
-    # Include your site-specific configurations
-    include /etc/nginx/conf.d/*.conf;
+# Upstream for n8n
+upstream n8n_backend {
+    server n8n:5678;
 }
-```
 
-### Site-Specific Config (`./config/conf.d/default.conf`)
-```nginx
+# n8n UI (n8n.jerryagenyi.xyz)
 server {
     listen 80;
-    server_name llm.jerryagenyi.xyz localhost;
+    server_name n8n.jerryagenyi.xyz;
 
     location / {
-        return 200 "Ollama Nginx Proxy is running.";
+        proxy_pass http://n8n_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
+}
 
-    location /api/ {
-        proxy_pass http://ollama_backend:11434/api/;
+# n8n Webhooks (webhooks.jerryagenyi.xyz)
+server {
+    listen 80;
+    server_name webhooks.jerryagenyi.xyz;
+
+    location / {
+        proxy_pass http://n8n_backend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -122,15 +117,37 @@ server {
         proxy_send_timeout 300s;
         proxy_connect_timeout 300s;
     }
+}
 
-    # Example for /web/ endpoint if you add a UI later
-    # location /web/ {
-    #     proxy_pass http://some_ui_container:port/;
-    #     proxy_set_header Host $host;
-    # }
+# Ollama API (llm.jerryagenyi.xyz)
+upstream ollama_backend {
+    server host.docker.internal:11434;
+}
+
+server {
+    listen 80;
+    server_name llm.jerryagenyi.xyz;
+
+    # Health check endpoint
+    location = / {
+        return 200 "Ollama Nginx Proxy is running.";
+    }
+
+    # API proxy
+    location /api/ {
+        proxy_pass http://ollama_backend/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_buffering off;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_connect_timeout 300s;
+    }
 }
 ```
-**Note:** `ollama_backend` is defined in the main config as pointing to `host.docker.internal:11434`.
+**Note:** `ollama_backend` is defined as pointing to `host.docker.internal:11434`.
 
 [Return to Top](#table-of-contents)
 
