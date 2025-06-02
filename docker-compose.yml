@@ -1,5 +1,25 @@
 # docker-compose.yml for Llama Local Server with GPU via native Windows Ollama
 services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    container_name: llama-litellm
+    restart: unless-stopped
+    environment:
+      - LITELLM_PORT=4000
+      - LITELLM_MODEL_LIST_FILE=/etc/litellm-config.json
+      - LITELLM_LOG_LEVEL=INFO
+    ports:
+      - "4000:4000"
+    networks:
+      - llama-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./config/litellm-config.json:/etc/litellm-config.json:ro
+
   nginx:
     image: nginx:alpine
     container_name: llama-nginx
@@ -13,10 +33,12 @@ services:
       - ./config/.htpasswd:/etc/nginx/.htpasswd:ro
     networks:
       - llama-network
+    depends_on:
+      - litellm
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
-      timeout: 10s
+      timeout: 5s
       retries: 3
 
   cloudflared:
@@ -31,6 +53,11 @@ services:
       - nginx
     networks:
       - llama-network
+    healthcheck:
+      test: ["CMD", "cloudflared", "--version"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
 
   watchtower:
     image: containrrr/watchtower
