@@ -40,7 +40,7 @@ A robust, production-ready local LLM server stack for Windows with AMD GPU accel
    - AMD GPU drivers (see guide for recommended version)
 2. **Clone this repository** (in WSL2 Ubuntu):
    ```bash
-   git clone https://github.com/yourusername/local-llama-wsl2-server.git
+   git clone https://github.com/jerryagenyi/local-llama-wsl2-server.git
    cd local-llama-wsl2-server
    ```
 3. **Copy and edit environment files:**

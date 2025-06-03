@@ -1,4 +1,5 @@
-# docker-compose.yml for Llama Local Server with GPU via native Windows Ollama
+# docker-compose.yml for Llama Local Server with GPU via native Windows Ollama and LiteLLM
+
 services:
   litellm:
     image: ghcr.io/berriai/litellm:main-stable
@@ -8,12 +9,13 @@ services:
       - LITELLM_PORT=4000
       - LITELLM_MODEL_LIST_FILE=/etc/litellm-config.json
       - LITELLM_LOG_LEVEL=INFO
+      - LITELLM_MASTER_KEY=sk-dtOcy2cRauc03Oe8W/HpJYfQiHo8hyAKGw6o22+eLc3VbGH256cIghG4t58BYMb # Also in nginx config, so if you change here, change there too. 
     ports:
       - "4000:4000"
     networks:
       - llama-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      test: ["CMD-SHELL", "wget --quiet --spider http://localhost:4000/models || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -36,25 +38,26 @@ services:
     depends_on:
       - litellm
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD-SHELL", "wget --quiet --spider http://localhost/health || exit 1"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
 
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: llama-tunnel
     restart: unless-stopped
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-    # Remove the CLOUDFLARED_OPTS - use command instead
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    # environment:
+    #   - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN} # Commented out, handled in config.yml
+    command: tunnel --config /etc/cloudflared/config.yml run
     depends_on:
       - nginx
     networks:
       - llama-network
+    volumes:
+      - /mnt/c/Users/Username/.cloudflared:/etc/cloudflared:ro
     healthcheck:
-      test: ["CMD", "cloudflared", "--version"]
+      test: ["CMD-SHELL", "cloudflared --version || exit 1"]
       interval: 60s
       timeout: 10s
       retries: 3
@@ -70,6 +73,7 @@ services:
       - WATCHTOWER_SCHEDULE=0 0 2 * * *  # Fixed cron syntax
     networks:
       - llama-network
+    # Watchtower does not expose a health endpoint; removing healthcheck to prevent errors
 
   n8n:
     image: n8nio/n8n:latest
@@ -88,7 +92,7 @@ services:
     networks:
       - llama-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5678/healthz" ]
+      test: ["CMD-SHELL", "wget --quiet --spider http://localhost:5678/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
