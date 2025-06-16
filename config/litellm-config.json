@@ -1,0 +1,22 @@
+{
+  "model_list": [
+    {
+      "model_name": "qwen3:8b",
+      "litellm_params": {
+        "model": "ollama/qwen3:8b",
+        "api_base": "http://host.docker.internal:11434"
+      }
+    },
+    {
+      "model_name": "devstral-small-2505",
+      "litellm_params": {
+        "model": "mistralai/devstral-small-2505",
+        "api_base": "http://192.168.1.244:1234"
+      }
+    }
+  ],
+  "model_aliases": {
+    "qwen": "qwen3:8b",
+    "devstral": "devstral-small-2505"
+  }
+}

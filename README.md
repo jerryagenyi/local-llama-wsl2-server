@@ -1,90 +1,125 @@
-# Ollama Local Deployment on Windows & WSL2
+# Local LLM Server with Caddy, Ollama, and N8N
 
-A robust, production-ready local LLM server stack for Windows with AMD GPU acceleration, using a hybrid architecture: Ollama runs natively on Windows for direct GPU access, while WSL2 (Ubuntu) hosts Docker containers for Nginx, Cloudflare Tunnel, and Watchtower. This repository is the result of extensive real-world troubleshooting and is suitable for both solo and team use.
-
----
-
-## High-Level Overview
-- **Goal:** Deploy local LLMs with GPU acceleration on Windows, with secure public access and flexible API integration.
-- **Architecture:** Native Windows Ollama for GPU inference; WSL2/Docker for networking, proxying, and public endpoints.
-- **Key Technologies:** Ollama, Docker, WSL2, Nginx, Cloudflare Tunnel.
-
----
+A secure, high-performance local LLM server setup using Ollama with GPU acceleration, Caddy for HTTPS and reverse proxy, and N8N for automation workflows.
 
 ## Features
-- **GPU-Accelerated LLM Inference** (AMD RX 6800 XT, 16GB VRAM, via native Windows Ollama)
-- **Secure Public Access** via Cloudflare Tunnel and Nginx reverse proxy
-- **Separation of Concerns:** Inference on Windows, networking/public access in WSL2 Docker
-- **Production-Ready Scripts & Configs:** All scripts, configs, and environment files are up-to-date and well-documented
-- **Comprehensive Guide:** Includes troubleshooting, hardware advice, and rationale for all architectural decisions
-- **Best Practices:** LF line endings for shell scripts, sensitive files excluded, clear environment separation
-- **Extensible:** Easily add new services (e.g., N8N, web UIs) and expose them via new hostnames
 
----
+- 🚀 GPU-accelerated LLM inference with Ollama
+- 🔒 Automatic HTTPS with Caddy
+- 🔐 Built-in security features:
+  - Basic authentication for all endpoints
+  - Rate limiting to prevent abuse
+  - Bot detection bypass for legitimate automation
+- 🤖 N8N integration for automation workflows
+- 🎨 Flowise integration for visual LLM workflows
+- 📊 JSON logging for monitoring
 
-## Hardware Requirements (Summary)
-- **GPU:** 16GB+ VRAM recommended (e.g., RX 6800 XT, RTX 4090 for larger models)
-- **CPU:** 8+ cores recommended
-- **RAM:** 32GB+ recommended
-- **Storage:** NVMe SSD for fast model loading
+## Prerequisites
 
----
+1. **Windows 10/11** (fully updated)
+2. **WSL2 (Ubuntu 24.04 LTS)**
+   ```powershell
+   wsl --install -d Ubuntu-24.04
+   ```
+3. **Docker Desktop for Windows** (with WSL2 integration)
+4. **Ollama for Windows** (from [ollama.com/download](https://ollama.com/download))
+5. **AMD GPU Drivers** (ROCm support)
+6. **Domain Names** (already set up):
+   - `llm.jerryagenyi.xyz`
+   - `n8n.jerryagenyi.xyz`
+   - `flowise.jerryagenyi.xyz`
 
-## Getting Started (Quick Start)
-1. **Install Prerequisites**
-   - Windows 10/11 (fully updated)
-   - WSL2 (Ubuntu 24.04 LTS recommended)
-   - Docker Desktop for Windows (with WSL2 integration enabled)
-   - Git
-   - Ollama for Windows (download from [ollama.com/download](https://ollama.com/download))
-   - AMD GPU drivers (see guide for recommended version)
-2. **Clone this repository** (in WSL2 Ubuntu):
+## Quick Start
+
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/yourusername/local-llama-wsl2-server.git
    cd local-llama-wsl2-server
    ```
-3. **Copy and edit environment files:**
+
+2. **Create Caddy credentials:**
    ```bash
-   cp .env.example .env
-   # Edit .env and config/ollama.env as needed
+   mkdir -p config/caddy
+   caddy hash-password
+   # Enter your desired password when prompted
+   # Copy the output hash
    ```
-4. **Start Docker services (in WSL2):**
+
+3. **Update Caddyfile with your credentials:**
+   ```bash
+   # Edit config/caddy/Caddyfile and replace {YOUR_HASH} with the hash from step 2
+   ```
+
+4. **Start the services:**
    ```bash
    docker compose up -d
    ```
-5. **Start Ollama (on Windows):**
-   - Ollama auto-starts on login; verify with Task Manager or by running `ollama serve` in PowerShell.
-6. **Access the API:**
-   - Locally: `http://host.docker.internal:11434`
-   - Via Nginx: `http://localhost:<EXTERNAL_NGINX_PORT>`
-   - Via Cloudflare Tunnel: Your public tunnel URL (see Cloudflare dashboard)
 
-For full details, see the [main guide](./Ollama-Local-Deployment-Guide-Windows-WSL-GPU.md).
+5. **Verify Ollama GPU detection:**
+   ```powershell
+   ollama serve
+   # Check logs for "library=rocm" and your GPU name
+   ```
 
----
+## Security Features
 
-## Why This Setup? (The Journey)
-- **GPU Passthrough Limitations:** WSL2/Docker Desktop cannot reliably pass through AMD GPUs for ROCm in containers on Windows.
-- **Hybrid Solution:** Native Windows Ollama provides full GPU acceleration; WSL2 Docker enables robust, scriptable networking and public access.
-- **Security & Flexibility:** Cloudflare Tunnel and Nginx provide secure, authenticated public endpoints.
-- **Naming Strategy:** One tunnel per machine, hostnames per service. See [Tunnel Naming Strategy](./docs/TUNNEL_NAMING_STRATEGY.md).
+### 1. Basic Authentication
+All endpoints are protected with basic authentication. Update the credentials in `config/caddy/Caddyfile`.
 
----
+### 2. Rate Limiting
+- Ollama API: 10 requests/second with 20 burst
+- N8N: 5 requests/second with 10 burst
+- Flowise: 5 requests/second with 10 burst
 
-## Contribution & Feedback
-- All scripts and configs are commented and production-ready.
-- Please use LF line endings for shell scripts (enforced via `.gitattributes`).
-- Sensitive files (e.g., `.env`, tunnel tokens) are excluded from version control.
-- Issues, pull requests, and feedback are welcome—especially regarding GPU passthrough on other platforms or ideas for future expansion.
+### 3. Bot Detection Bypass
+Custom headers are added to prevent false bot detection while maintaining security.
 
----
+### 4. HTTPS Enforcement
+All traffic is automatically upgraded to HTTPS with Let's Encrypt certificates.
 
-## Acknowledgements
-- [Ollama](https://ollama.com/)
-- [Cloudflare Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/)
-- [Docker](https://www.docker.com/)
+## Service Endpoints
 
----
+### Ollama API
+- Base URL: `https://llm.jerryagenyi.xyz`
+- Endpoints:
+  - `/api/generate`
+  - `/api/chat`
+  - `/api/tags`
 
-## Licence
-MIT
+### N8N
+- URL: `https://n8n.jerryagenyi.xyz`
+- Webhook URL: `https://n8n.jerryagenyi.xyz/webhook`
+
+### Flowise
+- URL: `https://flowise.jerryagenyi.xyz`
+- API: `https://flowise.jerryagenyi.xyz/api/v1`
+
+## Monitoring
+
+- Logs are stored in JSON format in the `caddy_data` volume
+- View logs with:
+  ```bash
+  docker logs llama-caddy
+  ```
+
+## Troubleshooting
+
+1. **Caddy Certificate Issues:**
+   - Ensure ports 80 and 443 are forwarded to your machine
+   - Check DNS A records point to your public IP
+
+2. **Ollama GPU Detection:**
+   - Verify AMD drivers are installed
+   - Check `ollama serve` logs for ROCm support
+
+3. **N8N/Flowise Access:**
+   - Verify basic auth credentials
+   - Check rate limiting if requests are blocked
+
+## Contributing
+
+Feel free to submit issues and enhancement requests!
+
+## License
+
+MIT License - see LICENSE file for details
