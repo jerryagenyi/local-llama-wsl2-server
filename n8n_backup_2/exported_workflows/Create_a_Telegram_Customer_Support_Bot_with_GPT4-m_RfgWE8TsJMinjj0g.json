@@ -1,0 +1,230 @@
+{
+  "id": "RfgWE8TsJMinjj0g",
+  "name": "Create a Telegram Customer Support Bot with GPT4-mini and Google Docs Knowledge",
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "2010fa80-0a4a-4d97-99d0-eb712a301737",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        720,
+        240
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}"
+      },
+      "id": "5c08a0d1-671f-440f-aa87-51104a2ca127",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        880,
+        240
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "https://docs.google.com/document/d/1os02TMG0h74DYE_mmv5utPr68LtV946otozP1YZTNr0/edit?tab=t.0"
+      },
+      "id": "698799fe-96be-4ddc-baa6-90ae0168e69c",
+      "name": "Google Docs",
+      "type": "n8n-nodes-base.googleDocsTool",
+      "position": [
+        1020,
+        240
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "8361e60a-ea3f-445e-8494-d9e031f27961",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        440,
+        60
+      ],
+      "webhookId": "d546870e-898a-4d37-b290-a4b3e3eac311",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "5a7eeac3-438c-4e5b-8cb5-c785b22d2570",
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        1220,
+        60
+      ],
+      "webhookId": "cfeeb7fc-6dad-4482-b8c7-73998bfc613f",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "content": "Telegram Trigger",
+        "height": 500,
+        "width": 300
+      },
+      "id": "dc6968f0-9059-48a1-8d0c-584fe1c6b573",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        340,
+        -40
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "Telegram Trigger",
+        "height": 500,
+        "width": 500,
+        "color": 4
+      },
+      "id": "75be0d37-8311-4395-94bb-c990e2f5bb74",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        660,
+        -40
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "Telegram Trigger",
+        "height": 500,
+        "width": 280,
+        "color": 3
+      },
+      "id": "a93fcad9-69fe-4862-ba7d-900359b3ec76",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1180,
+        -40
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "You are a helpful Customer Support Agent, cross-reference the Google Doc for any customer queries for relevant information. If relevant information is not found, do not make up facts. Plainly let the user know that the information isn't available. \n\n#Tonality\nFriendly, casual and helpful. if user or customer says hi, inform them that you are a Friendly Customer Support Agent"
+        }
+      },
+      "id": "2fa6c77a-9f48-453d-80a3-4cbe460b6c4f",
+      "name": "Customer Support AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        760,
+        60
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "content": "\ud83e\udd16 AI Customer Support Agent with Google Docs Knowledge (Telegram + OpenAI)\n\nThis no-code workflow turns your Telegram bot into an intelligent, always-on AI support agent that references your business documentation in Google Docs to respond to customer queries\u2014instantly and accurately.\n\nWatch full step-by-step video tutorial of the build here:\nhttps://www.youtube.com/@Automatewithmarc\n\n\ud83d\udd27 How it works:\nTelegram Trigger \u2013 Captures incoming messages from users on your Telegram bot\n\nLangchain AI Agent (OpenAI GPT) \u2013 Interprets the message and uses RAG (retrieval-augmented generation) techniques to craft an answer\n\nGoogle Docs Tool \u2013 Connects to and retrieves context from your specified Google Doc (e.g. FAQ, SOPs, policies)\n\nMemory Buffer \u2013 Keeps track of recent chat history for more human-like conversations\n\nTelegram Reply Node \u2013 Sends the AI-generated response back to the user\n\n\ud83d\udca1 Use Cases:\nE-commerce customer service\n\nSaaS product onboarding\n\nInternal helpdesk bot for teams\n\nWhatsApp-style support for digital businesses\n\n\ud83e\udde0 What makes this powerful:\nSupports complex questions by referencing a live Google Doc knowledge base\n\nWorks in plain conversational language (no buttons or forms needed)\n\nRuns 24/7 with zero code\n\nEasily extendable to Slack, WhatsApp, or email support\n\n\ud83d\udee0\ufe0f Tools used:\nTelegram Node (trigger + send)\n\nLangchain Agent with OpenAI GPT\n\nGoogle Docs Tool\n\nMemory Buffer\n\nSticky Notes for easy understanding",
+        "height": 500,
+        "width": 360,
+        "color": 5
+      },
+      "id": "3a4f40ce-50eb-40dc-a683-39bfac9a9149",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -60,
+        -40
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Google Docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "Customer Support AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Customer Support AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Customer Support AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Customer Support AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Support AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

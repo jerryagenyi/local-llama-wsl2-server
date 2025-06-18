@@ -1,0 +1,41 @@
+{
+  "id": "XW0h5CsYkWvyv7Sd",
+  "name": "Voice-Powered Marketing Assistant with ElevenLabs, OpenAI & Content Generation",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "\ud83e\udde0 Gwen \u2013 The AI Voice Marketing Agent\nGwen is your intelligent voice-powered marketing assistant built in n8n. She combines the power of OpenAI, ElevenLabs, and automation workflows to handle content creation, image generation, and voice delivery \u2014 all from a single agent interface.\n\nThis template shows a graphical illustration of how Gwen will work with subworkflows. These subworkflows are modular placeholders and need to be linked into Gwen for full deployment.\n\n\u2728 What Gwen Can Do\n\ud83d\udcdd Generate Voice-Optimized Blog Posts\nTailored for your target audience with engaging intros, real-time research, and polished structure.\n\ud83d\uddbc\ufe0f Create AI-Generated Visuals\nFrom simple concepts to detailed image prompts and Google Drive uploads.\n\ud83e\uddd1\u200d\ud83c\udfa8 Edit Images On Demand\nModify past images with a few words \u2014 powered by OpenAI's image editing API.\n\ud83d\udd0d Search Image Database\nQuickly find past content using title or intent.\n\ud83e\udde0 Think Tool\nGwen uses this to clarify uncertain tasks or analyze complex requests.\n\ud83d\udd0a Deliver Results in Natural Voice\nWith ElevenLabs, Gwen transforms all responses into human-like audio, perfect for marketing, social content, or voice interfaces.\n\ud83d\udee0\ufe0f Setup Instructions\nEstimated Time: 15\u201330 mins\n\n\u2705 Step 1: Subworkflows\n\nImport These Workflows\nBlog Post, Create Image, Edit Image, Search Images\nConnect Them to Gwen\nAssign as tools inside the Gwen agent node (Langchain AI Agent in n8n).\n\ud83c\udf99\ufe0f Step 2: Enable ElevenLabs Voice Agent\n\nSign up or log in: https://try.elevenlabs.io\nCopy your API key\nIn the ElevenLabs interface, create a new tool:\nMethod: POST\nURL: https://your-n8n-domain/webhook/042cc868-28b7-42a2-ab65-bc2944fc5a54\nUnder Body Parameters, add:\nprompt \u2192 value type: LLM Prompt\nsessionId \u2192 value type: Dynamic variable, name: system__conversation_id\nSave and connect this tool to your ElevenLabs agent\nRun a test and check n8n execution logs to confirm Gwen\u2019s voice integration is active\n\ud83d\udd10 Step 3: Credentials to Set\n\nOpenAI \u2013 For text and image generation\nElevenLabs \u2013 For voice output\nTavily \u2013 For real-time research in blog generation\nTelegram \u2013 For sending content to users\nGoogle Sheets \u2013 To log all outputs like blogs and images",
+        "height": 1300,
+        "width": 800
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        -180
+      ],
+      "id": "da8c4c08-e3e0-4de7-99a2-2edfca3c5bb1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        360,
+        -180
+      ],
+      "id": "061b4ac4-980b-44ad-b2af-b2d350e740a9",
+      "name": "When chat message received",
+      "webhookId": "75080e72-4d8a-4ed9-b361-e2ee15049fe3"
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

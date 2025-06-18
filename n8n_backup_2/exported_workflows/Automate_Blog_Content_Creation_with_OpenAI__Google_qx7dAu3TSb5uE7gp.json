@@ -1,0 +1,771 @@
+{
+  "id": "qx7dAu3TSb5uE7gp",
+  "name": "Automate Blog Content Creation with OpenAI, Google Sheets & Email Approval Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "id": "0227cef2-1c89-4c20-ad6e-5c9af0d734db",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        -1840,
+        320
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert-level SEO content strategist and copywriter with years of experience writing high-performing blog posts.\n\nYour task is to:\n\n1. Improve the provided topic title by generating a better, SEO-optimized blog post title that is more attractive and ranks well on search engines.\n\n2. Write a complete blog post based on the improved title. The post must:\n- Be between 800\u20131200 words\n- Use a clear, conversational, and engaging tone\n- Be SEO-friendly with natural keyword integration\n- Start with a hooking introduction that introduces the topic smoothly\n- Use headings and subheadings (H1 for the title, H2 for main sections, H3 for supporting points)\n- Use bullet points or numbered lists where helpful\n- Have a strong conclusion that summarizes the key points and includes a call-to-action or final insight\n- Ensure smooth flow and concise, informative paragraphs\n\n3. Output the result as a JSON object with this format:\n\n```json\n{\n  \"title\": \"Improved SEO-Optimized Title\",\n  \"content\": \"Full blog post content in markdown format\"\n}\n```\n\nHere is the topic you should improve and write about:\n{{ $json.Topic }}\n\nGenerate the improved title and the full blog post now.\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "add138be-3f3b-4c7b-b8fe-9074ff24886b",
+      "name": "Copywriter AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -1180,
+        240
+      ],
+      "typeVersion": 1.9
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "id": "11e0e8bb-aec3-46c6-b8e5-6973f01e4842",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        -1200,
+        540
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Get Topic from Google Sheets').item.json.Topic }}",
+        "contextWindowLength": 10
+      },
+      "id": "d9fb8396-9a67-4a61-94c9-10af5ac3362f",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        -1000,
+        540
+      ],
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert-level copywriter with strong SEO knowledge and a clear, engaging writing style. Your task is to revise an existing blog post based on the given topic and user feedback.\n\nHere are your responsibilities:\n- Carefully apply all of the user's feedback to improve the blog post.\n- Preserve the good parts of the original content, but rewrite or adjust areas based on the feedback.\n- Keep the tone friendly, professional, and easy to read.\n- Organize the blog post with clear headings and subheadings.\n- Use bullet points or numbered lists when it makes the content clearer.\n- Ensure a strong hook in the introduction and a solid conclusion with a call-to-action or takeaway.\n- Aim for a length between 800\u20131200 words unless the feedback suggests otherwise.\n\nHere is the topic title:\n{{ $('Get Topic from Google Sheets').item.json.Topic }}\n\nHere is the user's feedback:\n{{ $('Send Content for Approval').item.json.data['Content Feedback'] }}\n\nHere is the original content:\n{{ $('Copywriter AI Agent').item.json.output }}\n\nNow, rewrite the blog post using this input, fully incorporating the feedback.\n",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "id": "4fd3039c-1214-439e-baaf-8af3f66fb2e9",
+      "name": "Copywriter Revision Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -680,
+        700
+      ],
+      "typeVersion": 1.9
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c4dbce1a-8b34-46b7-a740-b49339233e68",
+              "name": "Topic Title",
+              "type": "string",
+              "value": "={{ $json.output.title }}"
+            },
+            {
+              "id": "4924b496-db60-4618-bab7-a9d5e689c8eb",
+              "name": "Content",
+              "type": "string",
+              "value": "={{ $json.output.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "faff7209-afe7-40c9-8ab7-06bbef67689e",
+      "name": "Set Data",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -740,
+        240
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"title\": \"Improved SEO-Optimized Title\",\n  \"content\": \"Full blog post content in markdown format\"\n}"
+      },
+      "id": "29a6a887-6e76-4406-9519-358072a1cd32",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "position": [
+        -900,
+        720
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1CyELzPxCDHAXJVu-p2_QRiGRGYwjPtJpeGwWXvlWjLw",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyELzPxCDHAXJVu-p2_QRiGRGYwjPtJpeGwWXvlWjLw/edit?usp=drivesdk",
+          "cachedResultName": "Content Topics"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": 1579104486,
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyELzPxCDHAXJVu-p2_QRiGRGYwjPtJpeGwWXvlWjLw/edit#gid=1579104486",
+          "cachedResultName": "Generated Content"
+        },
+        "columns": {
+          "value": {
+            "Title": "={{ $('Set Data').item.json['Topic Title'] }}",
+            "Content": "={{ $('Set Data').item.json.Content }}",
+            "Generation Date": "={{ $now }}"
+          },
+          "schema": [
+            {
+              "id": "Title",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Title",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Content",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Content",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Generation Date",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "required": false,
+              "displayName": "Generation Date",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "a673aa80-b0b3-46fb-94f0-5b5c13a19f16",
+      "name": "Add Generated Content to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        200,
+        240
+      ],
+      "typeVersion": 4.5
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1CyELzPxCDHAXJVu-p2_QRiGRGYwjPtJpeGwWXvlWjLw",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyELzPxCDHAXJVu-p2_QRiGRGYwjPtJpeGwWXvlWjLw/edit?usp=drivesdk",
+          "cachedResultName": "Content Topics"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyELzPxCDHAXJVu-p2_QRiGRGYwjPtJpeGwWXvlWjLw/edit#gid=0",
+          "cachedResultName": "Topic List"
+        },
+        "columns": {
+          "value": {
+            "Status": "Completed",
+            "row_number": "={{ $('Get Topic from Google Sheets').item.json.row_number }}"
+          },
+          "schema": [
+            {
+              "id": "Topic",
+              "type": "string",
+              "display": true,
+              "removed": true,
+              "required": false,
+              "displayName": "Topic",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "type": "string",
+              "display": true,
+              "required": false,
+              "displayName": "Status",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Output",
+              "type": "string",
+              "display": true,
+              "removed": true,
+              "required": false,
+              "displayName": "Output",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "type": "string",
+              "display": true,
+              "removed": false,
+              "readOnly": true,
+              "required": false,
+              "displayName": "row_number",
+              "defaultMatch": false,
+              "canBeUsedToMatch": true
+            }
+          ],
+          "mappingMode": "defineBelow",
+          "matchingColumns": [
+            "row_number"
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "dfa21557-6e1d-4541-885a-9f5d5bcda3a5",
+      "name": "Update Topic Status on Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -140,
+        240
+      ],
+      "typeVersion": 4.5
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "1CyELzPxCDHAXJVu-p2_QRiGRGYwjPtJpeGwWXvlWjLw",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyELzPxCDHAXJVu-p2_QRiGRGYwjPtJpeGwWXvlWjLw/edit?usp=drivesdk",
+          "cachedResultName": "Content Topics"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CyELzPxCDHAXJVu-p2_QRiGRGYwjPtJpeGwWXvlWjLw/edit#gid=0",
+          "cachedResultName": "Topic List"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Pending"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "id": "2f6e8e1a-1cd3-456e-9b6e-e76e1a064aa8",
+      "name": "Get Topic from Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -1500,
+        320
+      ],
+      "typeVersion": 4.5
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "replace_with_your_email@yopmail.com",
+        "subject": "Approval Required for Blog Content",
+        "message": "=Generated Title:\n{{ $json['Topic Title'] }}\n\nGenerated Content:\n{{ $json.Content }}",
+        "responseType": "customForm",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Approve Content?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  },
+                  {
+                    "option": "Cancel"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Content Feedback",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0b290def-d43d-4448-82a0-40233087e96f",
+      "name": "Send Content for Approval",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        -580,
+        240
+      ],
+      "webhookId": "a23938a4-fc6c-4445-8dee-17e501e92e06",
+      "typeVersion": 2.1
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "317039f4-754e-4cb0-a674-eb8d26c9ed27",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.data['Approve Content?'] }}",
+                    "rightValue": "Yes"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Yes"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "caace3ea-4ca0-40de-84fb-5a8fd809a0eb",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.data['Approve Content?'] }}",
+                    "rightValue": "No"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "No"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "version": 2,
+                  "leftValue": "",
+                  "caseSensitive": true,
+                  "typeValidation": "strict"
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "f93e5649-6a21-49a9-9993-85f1323139b0",
+                    "operator": {
+                      "name": "filter.operator.equals",
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "leftValue": "={{ $json.data['Approve Content?'] }}",
+                    "rightValue": "Cancel"
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Cancel"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3e0e95b8-30ae-43d0-b62d-ceec6596dd6a",
+      "name": "Approval Result",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -440,
+        240
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "content": "\ud83d\udd52 WORKFLOW STARTER\nThis triggers the content generation process automatically.\n\nSetup Required:\n\u2022 Set your preferred trigger interval.",
+        "height": 360,
+        "width": 320,
+        "color": 4
+      },
+      "id": "bc6cc4a5-da50-4622-ae4d-e7fd4cf900d5",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1940,
+        140
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "\ud83d\udcca TOPIC RETRIEVAL\nFetches the first \"Pending\" topic from your topic list.\n\nSetup Required:\n\u2022 Connect your Google account\n\u2022 Update Sheet ID in node settings\n\u2022 Ensure \"Topic List\" sheet exists with columns:\n  - Topic (A), Status (B)\n\nOutput: Topic title + row number for tracking",
+        "height": 480,
+        "width": 320,
+        "color": 4
+      },
+      "id": "cbc8eb95-0f7f-4c5f-a86e-0372c840ad9c",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1600,
+        20
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## SETUP REQUIRED\n**Author:** [Billy Christi](https://n8n.io/creators/billy/)\n\n**Copy the Google Sheet template here**:\n\ud83d\udc49 [Automate Blog Content Creation \u2013 Google Sheet Template](https://docs.google.com/spreadsheets/d/1ZZ2RoMYS1DZEhM7hEDUbSCAUlcZrZ15pnGRHuus3fVk/edit?usp=sharing)\n\nGoogle Sheets Structure:\nSheet 1: \"Topic List\"\n\u2022 Column A: Topic\n\u2022 Column B: Status (\"Pending\", \"Completed\")\n\nSheet 2: \"Generated Content\"\n\u2022 Column A: Title\n\u2022 Column B: Content\n\u2022 Column C: Generation Date\n\nRequired Credentials:\n\u2022 OpenAI API Key\n\u2022 Google Sheets Credential\n\u2022 Gmail Credential",
+        "height": 480,
+        "width": 260,
+        "color": 4
+      },
+      "id": "6220a0c0-b65f-4808-9e6c-d6dbbec56829",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2220,
+        20
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "\ud83e\udd16 CONTENT CREATION\nAI writes SEO-optimized blog posts (800-1200 words).\n\nSetup Required:\n\u2022 Add OpenAI API key in credentials\n\u2022 Uses structured prompts for consistency\n\nOutput: JSON with title + content ready for review",
+        "height": 800,
+        "width": 460,
+        "color": 4
+      },
+      "id": "800246bd-e6db-462a-bf21-889274e17ccb",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1260,
+        20
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "\ud83d\udce7 HUMAN REVIEW\nThis step sends the generated content via email for approval.\n\n\u2705 Update the To Email Field in the Gmail node with your own email address.\n\n\u26a0\ufe0f Note: The workflow will pause here until a response is received.",
+        "height": 440,
+        "width": 440,
+        "color": 4
+      },
+      "id": "0ea6e43d-af86-48e8-a430-da901752c429",
+      "name": "Sticky Note4",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -760,
+        20
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "\u270f\ufe0f CONTENT REVISION\nAI improves content based on human feedback.\n\nTriggered when: Approval = \"No\"\nUses: Original topic + feedback + original content\nSame AI model as initial generation\n\nOutput: Revised content incorporating feedback",
+        "height": 420,
+        "width": 440,
+        "color": 4
+      },
+      "id": "77af6e10-75ca-448f-a600-3454d4f45b24",
+      "name": "Sticky Note5",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -760,
+        480
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "\u2705 TOPIC STATUS UPDATE\nUpdates topic status to \"Completed\" in tracking sheet.\n\nPurpose:\n\u2022 Prevents duplicate processing\n\u2022 Tracks workflow progress\n\u2022 Uses row number from initial fetch\n\nColumn Updated: Status (B) \u2192 \"Completed\"\n",
+        "height": 480,
+        "width": 300,
+        "color": 4
+      },
+      "id": "a1fc153b-7fac-42ef-bf6b-b33ed7c66bba",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -240,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "\ud83d\udcbe ADD GENERATED CONTENT\nSaves approved content to \"Generated Content\" sheet.\n\nSetup Required:\n\u2022 Ensure \"Generated Content\" sheet exists\n\u2022 Columns: Title (A), Content (B), Date (C)\n\nPurpose: Permanent storage for published content\n",
+        "height": 480,
+        "width": 300,
+        "color": 4
+      },
+      "id": "83bbb058-e5f6-466b-a9cc-720d99c6030e",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        100,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## \ud83d\ude80 Automate Blog Content Creation with OpenAI, Google Sheets & Email Approval Workflow\n\nWhat This Template Does:\n- Automatically generates SEO-optimized blog posts\n- Uses AI (GPT-4) to write 800-1200 word articles\n- Includes human approval process for quality control\n- Manages topics via Google Sheets\n- Handles revisions based on feedback\n\nPerfect For:\n- Content marketers scaling blog production\n- Agencies managing multiple clients\n- Bloggers wanting consistent publishing\n- SEO professionals creating optimized content",
+        "height": 420,
+        "width": 420,
+        "color": 5
+      },
+      "id": "bdac45f6-4398-417b-a45c-c6bcab144082",
+      "name": "Sticky Note8",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2220,
+        520
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## \ud83d\udccb WORKFLOW PROCESS OVERVIEW\n\nStep 1: \ud83d\udcc5 Schedule automatically starts process\nStep 2: \ud83d\udcca Fetch pending topic from Google Sheets\nStep 3: \ud83e\udd16 AI generates complete blog post\nStep 4: \ud83d\udce7 Send content to you for approval\nStep 5: \u2705 You approve, request changes, or cancel\nStep 6: \u270f\ufe0f AI revises content if changes requested\nStep 7: \ud83d\udcbe Save final content & mark topic complete\n",
+        "height": 420,
+        "width": 500,
+        "color": 5
+      },
+      "id": "f7c85b73-7d7a-4f99-9ee3-f8bb240e8daa",
+      "name": "Sticky Note9",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1780,
+        520
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Set Data": {
+      "main": [
+        [
+          {
+            "node": "Send Content for Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Copywriter AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Copywriter Revision Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approval Result": {
+      "main": [
+        [
+          {
+            "node": "Update Topic Status on Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Copywriter Revision Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Topic Status on Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Topic from Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Copywriter AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Copywriter Revision Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copywriter AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Set Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Copywriter AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          },
+          {
+            "node": "Copywriter Revision Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copywriter Revision Agent": {
+      "main": [
+        [
+          {
+            "node": "Set Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Content for Approval": {
+      "main": [
+        [
+          {
+            "node": "Approval Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Topic from Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Copywriter AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Topic Status on Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Add Generated Content to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

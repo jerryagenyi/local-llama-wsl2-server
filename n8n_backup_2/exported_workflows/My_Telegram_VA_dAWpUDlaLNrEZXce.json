@@ -1,0 +1,35 @@
+{
+  "id": "dAWpUDlaLNrEZXce",
+  "name": "My Telegram VA",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f3ee898a-f85f-4344-929c-d76992c802ee",
+      "name": "Telegram Trigger",
+      "webhookId": "625c706c-abd2-4c91-aa92-29f0fa107423",
+      "credentials": {
+        "telegramApi": {
+          "id": "VMAIK0gvZgwwC32Y",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

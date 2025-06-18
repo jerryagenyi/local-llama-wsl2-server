@@ -1,95 +1,78 @@
-# docker-compose.yml for Llama Local Server with GPU via native Windows Ollama and LiteLLM
-
-version: '3.8'
-
 services:
-  caddy:
-    image: caddy:2-alpine
-    container_name: llama-caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - llama-network
-    healthcheck:
-      test: ["CMD", "caddy", "validate", "--config", "/etc/caddy/Caddyfile"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
   n8n:
     image: n8nio/n8n:latest
-    container_name: desktop-n8n
-    restart: unless-stopped
+    container_name: n8n-temp
+    user: "node"
+    ports:
+      - "5678:5678"
     environment:
-      - N8N_HOST=n8n.jerryagenyi.xyz
-      - N8N_PROTOCOL=https
-      - WEBHOOK_URL=https://n8n.jerryagenyi.xyz/webhook
-      - GENERIC_TIMEZONE=Europe/London
-      - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
-      - EXECUTIONS_PROCESS=main
-      - N8N_SECURE_COOKIE=true
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=${N8N_AUTH_USER}
-      - N8N_BASIC_AUTH_PASSWORD=${N8N_AUTH_PASSWORD}
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_EDITOR_BASE_URL=https://n8n.jerryagenyi.xyz
+      - WEBHOOK_URL=https://n8n.jerryagenyi.xyz
+      - NODE_ENV=production
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
     volumes:
       - n8n_data:/home/node/.n8n
     networks:
-      - llama-network
+      - tunnel-network
+    restart: unless-stopped
+
+  litellm:
+    image: ghcr.io/berriai/litellm:main
+    container_name: litellm-api
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - HOST=0.0.0.0
+      - OLLAMA_API_BASE=http://host.docker.internal:11434
+      - LITELLM_API_KEY=${LITELLM_API_KEY}
+      - DEBUG=true
+      - LITELLM_CONFIG=/app/config.yaml
+    volumes:
+      - ./config/litellm/config.yaml:/app/config.yaml:ro
+      - ./config/litellm/config.yaml:/app/proxy_server_config.yaml:ro
+    command: --config /app/config.yaml --verbose --host 0.0.0.0
+    networks:
+      - tunnel-network
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --spider http://localhost:5678/ || exit 1"]
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-tunnel
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - tunnel-network
+    restart: unless-stopped
+    depends_on:
+      - litellm
 
   flowise:
     image: flowiseai/flowise:latest
-    container_name: desktop-flowise
-    restart: unless-stopped
+    container_name: flowise
+    ports:
+      - "3000:3000"
+    volumes:
+      - local-llama-wsl2-server_flowise_data:/root/.flowise
     environment:
       - PORT=3000
-      - FLOWISE_USERNAME=${FLOWISE_AUTH_USER}
-      - FLOWISE_PASSWORD=${FLOWISE_AUTH_PASSWORD}
-      - EXECUTION_MODE=main
-      - TOOL_FUNCTION_TIMEOUT=60000
-      - FLOWISE_SECRETKEY=${FLOWISE_SECRET_KEY}
-    volumes:
-      - flowise_data:/home/node/.flowise
-    networks:
-      - llama-network
-    healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --spider http://localhost:3000/ || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  watchtower:
-    image: containrrr/watchtower
-    container_name: llama-watchtower
     restart: unless-stopped
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_SCHEDULE=0 0 2 * * *
     networks:
-      - llama-network
+      - tunnel-network
+
+networks:
+  tunnel-network:
+    driver: bridge
 
 volumes:
   n8n_data:
-    driver: local
-  flowise_data:
-    driver: local
-  caddy_data:
-    driver: local
-  caddy_config:
-    driver: local
-
-networks:
-  llama-network:
-    driver: bridge
+  local-llama-wsl2-server_n8n_data:
+  local-llama-wsl2-server_flowise_data:
