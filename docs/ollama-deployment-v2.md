@@ -270,39 +270,6 @@ curl http://localhost:11434/api/tags
 
 ## Security
 
-### Basic Auth Configuration
-1. Generate password hash:
-```bash
-caddy hash-password
-```
-
-2. Configure Caddy:
-```caddyfile
-{
-    admin off
-}
-
-:80 {
-    basicauth {
-        admin $2a$14$your_hashed_password
-    }
-    reverse_proxy n8n:5678
-}
-```
-
-### API Security
-1. Rate limiting:
-```nginx
-limit_req_zone $binary_remote_addr zone=one:10m rate=1r/s;
-limit_req zone=one burst=5;
-```
-
-2. IP whitelisting:
-```nginx
-allow 192.168.1.0/24;
-deny all;
-```
-
 ### Model Security
 1. Regular updates:
 ```bash
