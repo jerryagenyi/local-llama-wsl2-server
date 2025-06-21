@@ -30,7 +30,6 @@ services:
       - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
       - LITELLM_SALT_KEY=${LITELLM_SALT_KEY}
       - STORE_MODEL_IN_DB=True
-      - 'LITELLM_MODEL_LIST=[{"model_name": "ollama-model", "litellm_params": {"model": "ollama/deepseek-r1:14b", "api_base":"http://host.docker.internal:11434"}}]'
       - DEBUG=true
     networks:
       - tunnel-network
