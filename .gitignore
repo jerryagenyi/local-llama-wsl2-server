@@ -1,0 +1,10 @@
+# Environment variables
+.env
+env.txt
+my_windows_env.txt
+my_wsl_env.txt
+
+# Docker
+.dockerignore
+**/docker-compose.yml
+**/Dockerfile 
