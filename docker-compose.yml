@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   litellm:
-    image: ghcr.io/berriai/litellm:main
+    image: ghcr.io/berriai/litellm:main-latest
     container_name: litellm-api
     ports:
       - "4000:4000"
@@ -35,7 +35,7 @@ services:
     volumes:
       - ./config/litellm/config.yaml:/app/config.yaml:ro
       - ./config/litellm/config.yaml:/app/proxy_server_config.yaml:ro
-    command: --config /app/config.yaml --verbose --host 0.0.0.0
+    command: --config /app/config.yaml --host 0.0.0.0
     networks:
       - tunnel-network
     restart: unless-stopped
@@ -61,7 +61,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - local-llama-wsl2-server_flowise_data:/root/.flowise
+      - flowise_data:/root/.flowise
     environment:
       - PORT=3000
     restart: unless-stopped
@@ -74,5 +74,4 @@ networks:
 
 volumes:
   n8n_data:
-  local-llama-wsl2-server_n8n_data:
-  local-llama-wsl2-server_flowise_data:
+  flowise_data:
