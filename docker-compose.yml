@@ -12,6 +12,7 @@ services:
       - N8N_EDITOR_BASE_URL=https://n8n.jerryagenyi.xyz
       - WEBHOOK_URL=https://n8n.jerryagenyi.xyz
       - NODE_ENV=production
+      - QUEUE_HEALTH_CHECK_ACTIVE=true
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
     volumes:
@@ -19,6 +20,11 @@ services:
     networks:
       - tunnel-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5678/healthz/readiness"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   litellm:
     image: ghcr.io/berriai/litellm:main-latest
@@ -29,8 +35,12 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
       - LITELLM_SALT_KEY=${LITELLM_SALT_KEY}
+      - LITELLM_API_KEY=${LITELLM_API_KEY}
       - STORE_MODEL_IN_DB=True
       - DEBUG=true
+    volumes:
+      - ./config/litellm/config.yaml:/app/config.yaml:ro
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--num_workers", "1"]
     networks:
       - tunnel-network
     restart: unless-stopped
@@ -77,6 +87,11 @@ services:
     restart: unless-stopped
     networks:
       - tunnel-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   tunnel-network:
