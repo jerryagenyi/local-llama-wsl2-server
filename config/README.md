@@ -2,6 +2,14 @@
 
 This directory contains configuration files for the services in this Docker Compose setup.
 
+## ⚠️ Important Setup Note
+
+**Before using this stack, you must first configure LiteLLM and Agent Zero through their web interfaces:**
+- **LiteLLM**: Access `http://localhost:4000` to add your Ollama models
+- **Agent Zero**: Access `http://localhost:8080` to configure AI agent settings
+
+These services require web UI configuration and cannot be fully configured through config files alone.
+
 ## 📁 Directory Structure
 
 ```
