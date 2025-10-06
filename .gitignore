@@ -4,8 +4,7 @@ backups/
 *.backup
 *.bak
 
-# Exclude scripts and miscellaneous files
-scripts/
+# Exclude miscellaneous files (keep scripts for backup functionality)
 misc/
 
 # Environment files with secrets
