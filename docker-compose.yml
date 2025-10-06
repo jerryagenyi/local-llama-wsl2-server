@@ -1,7 +1,7 @@
 services:
   n8n:
     image: n8nio/n8n:latest
-    container_name: n8n-temp
+    container_name: n8n
     user: "node"
     ports:
       - "5678:5678"
@@ -93,6 +93,28 @@ services:
       timeout: 10s
       retries: 3
 
+  agent-zero:
+    image: agent0ai/agent-zero:latest
+    container_name: agent-zero
+    ports:
+      - "8080:80"
+    volumes:
+      - agent_zero_data:/a0
+      - ./config/agent-zero/settings.json:/a0/tmp/settings.json:ro
+    environment:
+      - AUTH_LOGIN=${AGENT_ZERO_LOGIN:-admin}
+      - AUTH_PASSWORD=${AGENT_ZERO_PASSWORD:-admin123}
+    restart: unless-stopped
+    networks:
+      - tunnel-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - litellm
+
 networks:
   tunnel-network:
     driver: bridge
@@ -101,3 +123,4 @@ volumes:
   n8n_data:
   flowise_data:
   postgres_data:
+  agent_zero_data:
