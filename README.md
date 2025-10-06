@@ -4,13 +4,21 @@ This project sets up a comprehensive local AI development environment on a Windo
 
 The entire stack is made securely accessible from the internet using a Cloudflare Tunnel, without requiring any firewall configuration.
 
+## ⚠️ Important Setup Note
+
+**Before using this stack, you must first configure LiteLLM and Agent Zero through their web interfaces:**
+- **LiteLLM**: Access `http://localhost:4000` to add your Ollama models
+- **Agent Zero**: Access `http://localhost:8080` to configure AI agent settings
+
+These services require web UI configuration and cannot be fully configured through config files alone.
+
 ## Final Architecture
 
 The final architecture is designed for simplicity, performance, and easy management:
 
 -   **Ollama (on Windows Host):** Ollama is installed directly on Windows to leverage the full power of the host's GPU (both NVIDIA and AMD are supported). This is the core engine that runs the Large Language Models.
 -   **Docker Compose Services:** A `docker-compose.yml` file orchestrates the following containerized services:
-    -   **LiteLLM:** Acts as a proxy and management layer for Ollama. It provides a unified API and a user-friendly Admin UI to manage models.
+    -   **LiteLLM:** Acts as a proxy and management layer for Ollama. It provides a unified API and a user-friendly Admin UI to manage models. The `config/litellm/config.yaml` file is automatically generated and managed by LiteLLM.
     -   **PostgreSQL:** A dedicated database container for LiteLLM. This allows models to be managed dynamically through the UI, with configurations stored persistently in the database.
     -   **n8n:** A workflow automation tool. It's configured to communicate with Ollama via LiteLLM.
     -   **Flowise:** A UI-based tool for building custom LLM-powered applications and chatbots.
