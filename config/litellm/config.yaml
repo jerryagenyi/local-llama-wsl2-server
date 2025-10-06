@@ -1,8 +1,31 @@
 model_list:
-  - model_name: gpt-3.5-turbo
+  # Ollama models - accessible via host.docker.internal from container
+  - model_name: ollama/llama3.2:latest
     litellm_params:
-      model: openai/gpt-3.5-turbo
-      api_key: sk-1234
+      model: ollama/llama3.2:latest
+      api_base: http://host.docker.internal:11434
+
+  - model_name: ollama/qwen2.5-coder:latest
+    litellm_params:
+      model: ollama/qwen2.5-coder:latest
+      api_base: http://host.docker.internal:11434
+
+  - model_name: ollama/openchat:7b-v3.5-1210
+    litellm_params:
+      model: ollama/openchat:7b-v3.5-1210
+      api_base: http://host.docker.internal:11434
+
+  - model_name: ollama/codellama:13b-instruct
+    litellm_params:
+      model: ollama/codellama:13b-instruct
+      api_base: http://host.docker.internal:11434
+
+  - model_name: ollama/MFDoom/deepseek-r1-tool-calling:14b
+    litellm_params:
+      model: ollama/MFDoom/deepseek-r1-tool-calling:14b
+      api_base: http://host.docker.internal:11434
 
 litellm_settings:
   master_key: sk-1234
+  drop_params: true
+  set_verbose: true

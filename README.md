@@ -14,6 +14,7 @@ The final architecture is designed for simplicity, performance, and easy managem
     -   **PostgreSQL:** A dedicated database container for LiteLLM. This allows models to be managed dynamically through the UI, with configurations stored persistently in the database.
     -   **n8n:** A workflow automation tool. It's configured to communicate with Ollama via LiteLLM.
     -   **Flowise:** A UI-based tool for building custom LLM-powered applications and chatbots.
+    -   **Agent Zero:** An advanced AI agent framework that can use tools and perform complex tasks autonomously.
     -   **Cloudflared:** Manages a secure, persistent tunnel from the services to the Cloudflare network, making them accessible via a public URL (e.g., `https://your-tunnel.jerryagenyi.xyz`).
 -   **Networking:** All containers run on a shared Docker network. Services that need to communicate with the host's Ollama instance (like LiteLLM) do so by using the special DNS name `host.docker.internal`.
 
@@ -28,6 +29,10 @@ This project evolved significantly from its initial concept. Here are some of th
 3.  **Dynamic vs. Static Config for LiteLLM:** We initially used a static `config.yaml` file to define models for LiteLLM. This led to confusion because changes made in the LiteLLM Admin UI weren't reflected in the config file (and would be lost on restart). The superior approach was to remove the static config file entirely and add a PostgreSQL database. This makes the LiteLLM UI the single source of truth for model configuration, which is both more intuitive and robust.
 
 4.  **Cloud Sync Drives Cause Development Headaches:** A major recurring issue was that files like `.gitignore` were being automatically and silently renamed to `.gitignore 2`. The root cause was identified as the project folder being located within **iCloud Drive**. Cloud syncing services are not designed for the rapid and numerous file changes of a development project and can interfere with dotfiles. **The permanent solution is to keep development projects in a standard, non-synced local directory (e.g., `C:\Users\Username\dev\`).**
+
+5.  **Agent Zero Authentication with LiteLLM:** Agent Zero requires specific environment variables for API authentication. Unlike other services that can be configured through their UI, Agent Zero uses environment variables to authenticate with LiteLLM. The critical discovery was that Agent Zero needs both `OPENAI_API_KEY` (set to the LiteLLM master key) and `LITELLM_API_KEY` environment variables to properly authenticate with the LiteLLM proxy.
+
+6.  **OpenAI Provider for LiteLLM Compatibility:** When configuring Agent Zero to work with LiteLLM, use "OpenAI" as the provider (not "Ollama") because LiteLLM exposes an OpenAI-compatible API. The model names should still include the `ollama/` prefix (e.g., `ollama/llama3.2:latest`) and the API base URL should be `http://litellm:4000/v1`.
 
 ## Setup Instructions
 
@@ -57,6 +62,15 @@ This project evolved significantly from its initial concept. Here are some of th
     -   Open your browser and navigate to the LiteLLM Admin UI at `http://localhost:4000`.
     -   Use the UI to add your Ollama models. The API Base should be `http://host.docker.internal:11434`.
 
+6.  **Configure Agent Zero:**
+    -   Navigate to Agent Zero at `http://localhost:8080`
+    -   Login with credentials from your `.env` file (`AGENT_ZERO_LOGIN` / `AGENT_ZERO_PASSWORD`)
+    -   Configure each model section (Chat, Utility, Web Browser) with:
+        - **Provider**: `OpenAI` (for LiteLLM compatibility)
+        - **Model Name**: `ollama/model-name` (e.g., `ollama/llama3.2:latest`)
+        - **API Base URL**: `http://litellm:4000/v1`
+        - **Context Length**: Set appropriate values (e.g., 10000 for most models)
+
 Your services should now be running and accessible via their local ports and your public Cloudflare Tunnel URL.
 
 ## Features
@@ -69,6 +83,7 @@ Your services should now be running and accessible via their local ports and you
   - Bot detection bypass for legitimate automation
 - 🤖 N8N integration for automation workflows
 - 🎨 Flowise integration for visual LLM workflows
+- 🧠 Agent Zero for autonomous AI agent tasks
 - 📊 JSON logging for monitoring
 
 ## Prerequisites
@@ -151,6 +166,10 @@ All traffic is automatically upgraded to HTTPS with Let's Encrypt certificates.
 - URL: `https://flowise.jerryagenyi.xyz`
 - API: `https://flowise.jerryagenyi.xyz/api/v1`
 
+### Agent Zero
+- URL: `http://localhost:8080` (local access only)
+- Login: Use credentials from `.env` file (`AGENT_ZERO_LOGIN` / `AGENT_ZERO_PASSWORD`)
+
 ## Monitoring
 
 - Logs are stored in JSON format in the `caddy_data` volume
@@ -160,6 +179,8 @@ All traffic is automatically upgraded to HTTPS with Let's Encrypt certificates.
   ```
 
 ## Troubleshooting
+
+### General Issues
 
 1. **Caddy Certificate Issues:**
    - Ensure ports 80 and 443 are forwarded to your machine
@@ -172,6 +193,31 @@ All traffic is automatically upgraded to HTTPS with Let's Encrypt certificates.
 3. **N8N/Flowise Access:**
    - Verify basic auth credentials
    - Check rate limiting if requests are blocked
+
+### Agent Zero Specific Issues
+
+4. **Agent Zero Authentication Errors:**
+   ```
+   Error: "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+   ```
+   **Solution:** Ensure both environment variables are set in docker-compose.yml:
+   ```yaml
+   environment:
+     - OPENAI_API_KEY=${LITELLM_MASTER_KEY}
+     - LITELLM_API_KEY=${LITELLM_API_KEY}
+   ```
+   Then restart the container: `docker-compose up -d agent-zero`
+
+5. **Agent Zero Model Configuration:**
+   - **Provider**: Must be `OpenAI` (not `Ollama`) for LiteLLM compatibility
+   - **Model Name**: Must include `ollama/` prefix (e.g., `ollama/llama3.2:latest`)
+   - **API Base URL**: Must be `http://litellm:4000/v1` (note the `/v1` suffix)
+   - **API Key**: Not needed in UI (handled by environment variables)
+
+6. **Agent Zero Connection Issues:**
+   - Verify LiteLLM is running: `docker logs litellm-api`
+   - Test LiteLLM endpoint: `curl -H "Authorization: Bearer YOUR_LITELLM_MASTER_KEY" http://localhost:4000/v1/models`
+   - Check Agent Zero logs: `docker logs agent-zero`
 
 ## Contributing
 

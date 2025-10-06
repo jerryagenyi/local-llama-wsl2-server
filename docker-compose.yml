@@ -104,6 +104,9 @@ services:
     environment:
       - AUTH_LOGIN=${AGENT_ZERO_LOGIN:-admin}
       - AUTH_PASSWORD=${AGENT_ZERO_PASSWORD:-admin123}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - LITELLM_API_KEY=${LITELLM_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     restart: unless-stopped
     networks:
       - tunnel-network
