@@ -1,0 +1,54 @@
+ChMS Database Backup Information
+================================
+Backup Date: Thu Oct  9 20:49:57 BST 2025
+Timestamp: 20251009_204956
+Source Server: local-llama-wsl2-server
+PostgreSQL Version: PostgreSQL 16.9 on x86_64-pc-linux-musl, compiled by gcc (Alpine 14.2.0) 14.2.0, 64-bit
+
+Backup Files:
+- full_backup_20251009_204956.sql     : Complete PostgreSQL dump (all databases)
+- chms_backup_20251009_204956.sql     : ChMS database only
+- litellm_backup_20251009_204956.sql  : LiteLLM database only
+
+Database Information:
+                                                      List of databases
+   Name    |  Owner   | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |   Access privileges   
+-----------+----------+----------+-----------------+------------+------------+------------+-----------+-----------------------
+ chms_db   | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | 
+ postgres  | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | 
+ template0 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+ template1 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+(4 rows)
+
+ChMS Database Tables:
+                  List of relations
+ Schema |          Name           | Type  |  Owner   
+--------+-------------------------+-------+----------
+ public | badge_types             | table | postgres
+ public | cache                   | table | postgres
+ public | cache_locks             | table | postgres
+ public | failed_jobs             | table | postgres
+ public | families                | table | postgres
+ public | job_batches             | table | postgres
+ public | jobs                    | table | postgres
+ public | member_attribute_values | table | postgres
+ public | member_attributes       | table | postgres
+ public | member_badges           | table | postgres
+ public | member_notes            | table | postgres
+ public | members                 | table | postgres
+ public | migrations              | table | postgres
+ public | organization_settings   | table | postgres
+ public | organizations           | table | postgres
+ public | password_reset_tokens   | table | postgres
+ public | personal_access_tokens  | table | postgres
+ public | service_schedules       | table | postgres
+ public | sessions                | table | postgres
+ public | users                   | table | postgres
+(20 rows)
+
+Migration Notes:
+- These backups are for migrating ChMS to its own Docker environment
+- The ChMS database will be restored to a new PostgreSQL instance
+- LiteLLM will remain in the original server setup
