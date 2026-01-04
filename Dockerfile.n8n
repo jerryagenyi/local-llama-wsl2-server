@@ -1,0 +1,26 @@
+# Custom n8n image with Python and pytrends support
+FROM n8nio/n8n:latest
+
+# Switch to root to install system packages
+USER root
+
+# Install Python 3, pip, and required dependencies (Alpine Linux uses apk)
+RUN apk add --no-cache \
+    python3 \
+    py3-pip \
+    py3-setuptools
+
+# Switch to node user to install packages in user's local directory
+USER node
+
+# Install pytrends and dependencies for the node user
+# This ensures packages are in /home/node/.local/lib/python3.12/site-packages
+# Using --break-system-packages is safe in a container environment
+RUN python3 -m pip install --user --no-cache-dir --break-system-packages pytrends pandas lxml
+
+# Set PYTHONPATH to include user's local site-packages so n8n can find modules
+ENV PYTHONPATH=/home/node/.local/lib/python3.12/site-packages
+
+# Ensure Python and local bin are in PATH
+ENV PATH="/home/node/.local/bin:/usr/local/bin:/usr/bin:/bin:${PATH}"
+

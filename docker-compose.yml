@@ -1,10 +1,14 @@
 services:
   n8n:
-    image: n8nio/n8n:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.n8n
     container_name: n8n
     user: "node"
     ports:
       - "5678:5678"
+    security_opt:
+      - no-new-privileges:true
     environment:
       - N8N_HOST=0.0.0.0
       - N8N_PORT=5678
@@ -15,6 +19,11 @@ services:
       - QUEUE_HEALTH_CHECK_ACTIVE=true
       - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
       - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      # SSL Certificate handling for PostgreSQL connections (e.g., Supabase)
+      # Set to 0 to allow self-signed certificates (use with caution in production)
+      - NODE_TLS_REJECT_UNAUTHORIZED=${NODE_TLS_REJECT_UNAUTHORIZED:-0}
+      # Python path for n8n Python Code nodes to find pytrends and other packages
+      - PYTHONPATH=/home/node/.local/lib/python3.12/site-packages
     volumes:
       - n8n_data:/home/node/.n8n
     networks:
@@ -31,6 +40,8 @@ services:
     container_name: litellm-api
     ports:
       - "4000:4000"
+    security_opt:
+      - no-new-privileges:true
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
@@ -56,6 +67,8 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: cloudflared-tunnel
     command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    security_opt:
+      - no-new-privileges:true
     networks:
       - tunnel-network
     restart: unless-stopped
@@ -67,6 +80,8 @@ services:
     container_name: postgres
     ports:
       - "5432:5432"  # Expose PostgreSQL port for ChMS access
+    security_opt:
+      - no-new-privileges:true
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -90,6 +105,8 @@ services:
     container_name: flowise
     ports:
       - "3000:3000"
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - flowise_data:/root/.flowise
     environment:
@@ -108,6 +125,8 @@ services:
     container_name: agent-zero
     ports:
       - "8080:80"
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - agent_zero_data:/a0
       - ./config/agent-zero:/a0/config:rw
