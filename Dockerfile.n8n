@@ -1,5 +1,6 @@
 # Custom n8n image with Python and pytrends support
-FROM n8nio/n8n:latest
+# Security: Pin to version >= 1.121.0 to protect against CVE-2026-21858
+FROM n8nio/n8n:1.123.4
 
 # Switch to root to install system packages
 USER root

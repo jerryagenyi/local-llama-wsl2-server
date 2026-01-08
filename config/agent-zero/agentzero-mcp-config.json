@@ -1,0 +1,59 @@
+{
+  "mcpServers": {
+    "SequentialThinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "description": "Breaks down complex tasks into manageable steps for better reasoning and planning."
+    },
+    "Context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
+      "description": "Provides up-to-date documentation and context packaging."
+    },
+    "GitHubMcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ],
+      "description": "Enables interaction with GitHub repos for analysis, commits, and pull requests.",
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "PlaywrightBrowser": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "description": "Enables the agent to control a browser (emulating Chrome) for complex browsing, web scraping, and UI testing."
+    },
+    "BraveSearch": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-brave-search"
+      ],
+      "description": "Provides real-time, comprehensive search results via Brave Search API.",
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      }
+    },
+    "SerpAPI": {
+      "url": "https://mcp.serpapi.com/1a2119de2dc493adad883186059356288e05ac77e4994b871ab2f67e8a10eccd/mcp",
+      "description": "Provides structured search engine results for precise data extraction (e.g., news, shopping, rich snippets)."
+    }
+  }
+}
+
+
+
+
+

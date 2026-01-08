@@ -134,3 +134,11 @@ temp/
 *.njsproj
 *.sln
 *.sw?
+.claude/
+
+# Screenshots
+*.png
+*.jpg
+*.jpeg
+!README*.png
+!docs/**/*.png
