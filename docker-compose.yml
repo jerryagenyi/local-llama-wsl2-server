@@ -140,6 +140,10 @@ services:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - LITELLM_API_KEY=${LITELLM_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # MCP Server API Keys (for agentzero-mcp-config.json)
+      - GITHUB_PERSONAL_ACCESS_TOKEN=${GITHUB_PERSONAL_ACCESS_TOKEN:-}
+      - BRAVE_API_KEY=${BRAVE_API_KEY:-}
+      - SERPAPI_TOKEN=${SERPAPI_TOKEN:-}
     restart: unless-stopped
     networks:
       - tunnel-network

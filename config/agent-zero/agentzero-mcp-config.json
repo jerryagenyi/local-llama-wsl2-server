@@ -47,7 +47,7 @@
       }
     },
     "SerpAPI": {
-      "url": "https://mcp.serpapi.com/1a2119de2dc493adad883186059356288e05ac77e4994b871ab2f67e8a10eccd/mcp",
+      "url": "https://mcp.serpapi.com/${SERPAPI_TOKEN}/mcp",
       "description": "Provides structured search engine results for precise data extraction (e.g., news, shopping, rich snippets)."
     }
   }

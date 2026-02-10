@@ -65,6 +65,7 @@ This project evolved significantly from its initial concept. Here are some of th
     ```bash
     docker compose up -d
     ```
+    To update a service (e.g. n8n) with a fresh image, see [docs/update-docker-services.md](docs/update-docker-services.md).
 
 5.  **Configure LiteLLM:**
     -   Open your browser and navigate to the LiteLLM Admin UI at `http://localhost:4000`.
