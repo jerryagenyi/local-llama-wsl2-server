@@ -123,6 +123,17 @@ Agent Zero can use the existing LiteLLM service for LLM provider abstraction:
 
 ## Troubleshooting
 
+### Updating Agent Zero to the latest image
+
+Use the project’s update process so a fresh image is pulled (see [update-docker-services.md](update-docker-services.md)):
+
+- **PowerShell:** `.\scripts\update-docker-service.ps1 -Service agent-zero`
+- **Manual:** `docker compose down agent-zero` → `docker image rm agent0ai/agent-zero:latest` → `docker compose up -d agent-zero`
+
+### Search engine patch (KeyError: 'results')
+
+If the agent hits **KeyError: 'results'** when using search, the SearXNG response may lack a `results` key (e.g. SearXNG down or wrong URL). This repo applies a patch by mounting `config/agent-zero/patches/search_engine.py` over the container’s `search_engine.py`, so the tool handles missing or malformed responses safely. No action needed unless you remove that volume.
+
 ### Common Issues
 
 1. **Service Not Starting**
@@ -175,6 +186,7 @@ curl -f http://localhost:8080/healthz
 
 ## References
 
+- [Agent Zero vs OpenClaw: detailed comparison](agent-zero-vs-openclaw-comparison.md) (architecture, security, features, when to choose which)
 - [Agent Zero GitHub Repository](https://github.com/agent0ai/agent-zero)
 - [Agent Zero Documentation](https://github.com/agent0ai/agent-zero/tree/main/docs)
 - [Docker Compose Documentation](https://docs.docker.com/compose/)

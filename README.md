@@ -228,6 +228,8 @@ All traffic is automatically upgraded to HTTPS with Let's Encrypt certificates.
    - Test LiteLLM endpoint: `curl -H "Authorization: Bearer YOUR_LITELLM_MASTER_KEY" http://localhost:4000/v1/models`
    - Check Agent Zero logs: `docker logs agent-zero`
 
+7. **Agent Zero Search KeyError ('results'):** A patched `search_engine.py` is mounted from `config/agent-zero/patches/` so search handles missing SearXNG results. Ensure that volume is present in `docker-compose.yml`. If SearXNG isn’t running in the agent’s environment, search will return a clear error instead of crashing.
+
 ## Contributing
 
 Feel free to submit issues and enhancement requests!
